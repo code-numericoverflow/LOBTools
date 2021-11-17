@@ -22,7 +22,7 @@ function Get-DALLiteDBCreationScript {
         $testScript         = $testScripts        -join "`n"
         $updateScripts      = $astClasses         | Get-DALLiteDBUpdateScript
         $updateScript       = $updateScripts      -join "`n"
-        $upsertScripts      = $astClasses         | Get-DALLiteDBUpsertScript
+        $upsertScripts      = $astClasses         | Get-DALLiteDBUSetScript
         $upsertScript       = $upsertScripts      -join "`n"
         $removeScripts      = $astClasses         | Get-DALLiteDBRemoveScript
         $removeScript       = $removeScripts      -join "`n"
@@ -148,7 +148,7 @@ function Get-DALLiteDBAddScript {
 function Add-$className {
     param (
         [Parameter(mandatory=`$true, ValueFromPipeline=`$true)]
-        [$className]  `$$className
+      <#[$className]#>`$$className
     )
     process {
         `$$className | ConvertTo-LiteDbBSON | Add-LiteDBDocument -Connection `$Script:DB -Collection $CollectionName -Id `$$($className).Id
@@ -250,7 +250,7 @@ function Get-DALLiteDBUpdateScript {
 function Update-$className {
     param (
         [Parameter(Mandatory=`$true, ValueFromPipeline=`$true)]
-        [$className]  `$$parameterName
+      <#[$className]#>`$$parameterName
     )
     process {
         `$$parameterName | ConvertTo-LiteDbBSON | Update-LiteDBDocument -Connection `$Script:DB -Collection $CollectionName -Id `$$($className).Id
@@ -260,7 +260,7 @@ function Update-$className {
     }
 }
 
-function Get-DALLiteDBUpsertScript {
+function Get-DALLiteDBUSetScript {
     param (
         [Parameter(ValueFromPipeline=$true, Mandatory=$true)]
         [TypeDefinitionAst]   $classAst
@@ -270,10 +270,10 @@ function Get-DALLiteDBUpsertScript {
         $CollectionName     = $className  | Get-Plural
         $parameterName      = $className
         $script  = "
-function Upsert-$className {
+function Set-$className {
     param (
         [Parameter(Mandatory=`$true, ValueFromPipeline=`$true)]
-        [$className]  `$$parameterName
+      <#[$className]#>`$$parameterName
     )
     process {
         `$$parameterName | ConvertTo-LiteDbBSON | Upsert-LiteDBDocument -Connection `$Script:DB -Collection $CollectionName -Id `$$($className).Id
