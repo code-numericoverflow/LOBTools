@@ -16,8 +16,8 @@ function Get-DALLiteDBCreationScript {
         $indexScript        = $indexScripts       -join "`n"
         $addScripts         = $astClasses         | Get-DALLiteDBAddScript
         $addScript          = $addScripts         -join "`n"
-        $findScripts        = $astClasses         | Get-DALLiteDBFindScript
-        $findScript         = $findScripts        -join "`n"
+        $getScripts         = $astClasses         | Get-DALLiteDBGetScript
+        $getScript          = $getScripts        -join "`n"
         $testScripts        = $astClasses         | Get-DALLiteDBTestScript
         $testScript         = $testScripts        -join "`n"
         $updateScripts      = $astClasses         | Get-DALLiteDBUpdateScript
@@ -26,14 +26,14 @@ function Get-DALLiteDBCreationScript {
         $upsertScript       = $upsertScripts      -join "`n"
         $removeScripts      = $astClasses         | Get-DALLiteDBRemoveScript
         $removeScript       = $removeScripts      -join "`n"
-        $referenceScripts   = $references         | Get-DALLiteDBReferenceFindScript
+        $referenceScripts   = $references         | Get-DALLiteDBReferenceGetScript
         $referenceScript    = $referenceScripts   -join "`n"
 
         Get-DALLiteDBBase
         $collectionScript
         $indexScript
         $addScript
-        $findScript
+        $getScript
         $testScript
         $referenceScript
         $updateScript
@@ -135,7 +135,6 @@ function Get-DALLiteDBNewScript {
     }
 }
 
-# TODO: Controlar que el id no está vacío
 function Get-DALLiteDBAddScript {
     param (
         [Parameter(ValueFromPipeline=$true, Mandatory=$true)]
@@ -151,14 +150,18 @@ function Add-$className {
       <#[$className]#>`$$className
     )
     process {
-        `$$className | ConvertTo-LiteDbBSON | Add-LiteDBDocument -Connection `$Script:DB -Collection $CollectionName -Id `$$($className).Id
+        if (`$$className.Id -ne $null) {
+            `$$className | ConvertTo-LiteDbBSON | Add-LiteDBDocument -Connection `$Script:DB -Collection $CollectionName -Id `$$($className).Id
+        } else {
+            Write-Error ""Empty Id"" -TargetObject `$$className
+        }
     }
 }"
         $script
     }
 }
 
-function Get-DALLiteDBFindScript {
+function Get-DALLiteDBGetScript {
     param (
         [Parameter(ValueFromPipeline=$true, Mandatory=$true)]
         [TypeDefinitionAst]   $classAst
@@ -169,34 +172,32 @@ function Get-DALLiteDBFindScript {
         $parameterName      = $className + "Id"
         $parameterPlural    = $parameterName | Get-Plural
         $script  = "
-function Find-$className {
+function Get-$className {
     #[OutputType([$className])]
     param (
         [Parameter(ValueFromPipeline=`$true, ParameterSetName = 'Id')]
         [Object]  `$InputObject, 
-        [Parameter(ValueFromPipelineByPropertyName=`$true, ParameterSetName = 'Id', Mandatory = `$true)][Alias(""Id"")]
+        [Parameter(ValueFromPipelineByPropertyName=`$true, ParameterSetName = 'Id')][Alias(""Id"")]
         [String]  `$$parameterName,
         [Parameter(ParameterSetName = 'Id')]
         [Switch]  `$Merge,
         [Parameter(ParameterSetName = 'Text', Mandatory = `$true)]
-        [Object]  `$Text,
-        [Parameter(ParameterSetName = 'All')]
-        [Switch]  `$All
+        [Object]  `$Text
     )
     process {
-        if (`$All) {
-            Find-LiteDBDocument -Connection `$Script:DB -Collection $CollectionName -As PSObject | New-$className
-        }
         if (`$Text) {
             Find-LiteDBDocument -Connection `$Script:DB -Collection $CollectionName -As PSObject | New-$className | Where-Object { `$_.GetFullText().Contains(`$Text) }
-        }
-        if (`$$parameterName) {
-            `$result = Find-LiteDBDocument -Connection `$Script:DB -Collection $CollectionName -ID `$$parameterName -As PSObject | New-$className
-            if (`$Merge -and `$InputObject -ne `$null) {
-                Add-Member -InputObject `$InputObject -MemberType NoteProperty -Name $className -Value `$result
-                `$InputObject
+        } else {
+            if (`$$parameterName) {
+                `$result = Find-LiteDBDocument -Connection `$Script:DB -Collection $CollectionName -ID `$$parameterName -As PSObject | New-$className
+                if (`$Merge -and `$InputObject -ne `$null) {
+                    Add-Member -InputObject `$InputObject -MemberType NoteProperty -Name $className -Value `$result
+                    `$InputObject
+                } else {
+                    `$result
+                }
             } else {
-                `$result
+                Find-LiteDBDocument -Connection `$Script:DB -Collection $CollectionName -As PSObject | New-$className
             }
         }
     }
@@ -296,7 +297,7 @@ function Get-DALLiteDBRemoveScript {
         $script  = "
 function Remove-$className {
     param (
-        [Parameter(Mandatory=`$true)][Alias(""Id"")]
+        [Parameter(Mandatory=`$true, ValueFromPipelineByPropertyName=`$true)][Alias(""Id"")]
         [String]  `$$parameterName
     )
     Remove-LiteDBDocument -Connection `$Script:DB -Collection $CollectionName -ID `$$parameterName
@@ -305,7 +306,7 @@ function Remove-$className {
     }
 }
 
-function Get-DALLiteDBReferenceFindScript {
+function Get-DALLiteDBReferenceGetScript {
     param (
         [Parameter(ValueFromPipeline=$true, Mandatory=$true)]
         [Object]   $Reference
@@ -316,7 +317,7 @@ function Get-DALLiteDBReferenceFindScript {
         $sourceId        = $source + "Id"
         $collection      = $target | Get-Plural
         $script  = "
-function Find-$source$collection {
+function Get-$source$collection {
     #[OutputType([$target])]
     param (
         [Parameter(ValueFromPipeline=`$true)]
