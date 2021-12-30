@@ -150,7 +150,7 @@ function Add-$className {
       <#[$className]#>`$$className
     )
     process {
-        if (`$$className.Id -ne $null) {
+        if (`$$className.Id -ne `$null) {
             `$$className | ConvertTo-LiteDbBSON | Add-LiteDBDocument -Connection `$Script:DB -Collection $CollectionName -Id `$$($className).Id
         } else {
             Write-Error ""Empty Id"" -TargetObject `$$className
