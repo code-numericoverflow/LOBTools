@@ -1,6 +1,6 @@
 using namespace System.Management.Automation.Language
 
-function Get-Plural {
+function Get-ModelPlural {
     param (
         [Parameter(ValueFromPipeline=$true, Mandatory=$true)]
         [String]  $Noum
@@ -88,5 +88,37 @@ function Get-ModelNewScript {
         $script += "`t}`n"
         $script += "}`n"
         $script
+    }
+}
+
+function Register-ModelAutocompleter {
+    param (
+        [Parameter(ValueFromPipeline=$true)]
+        [String]   $Module   = "*.DAL.*"
+    )
+    process {
+        Get-Command -Module $Module -CommandType Function | ForEach-Object {
+            $function     = $_
+            $functionName = $_.Name
+            $parameters   = $_.Parameters
+            $parameters.Keys | ForEach-Object {
+                $parameterName  = $_
+                $parameterValue = $parameters[$_]
+                if ($parameterName.EndsWith("Id") -and $parameterName.Length -gt 2) {
+                    Register-ArgumentCompleter -CommandName $functionName -ParameterName $parameterName -ScriptBlock {
+                        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+                        $modelName = $parameterName.Substring(0, $parameterName.Length - 2)
+                        $script = [ScriptBlock]::Create("Get-$modelName -Text ""$wordToComplete""")
+                        $options = Invoke-Command -ScriptBlock $script
+                        $options | ForEach-Object {
+                            $descriptionValue  = $_.Name
+                            $codeValue         = $_.Id
+                            $extendedValue     = "'$codeValue' <# $descriptionValue #>"
+                            [System.Management.Automation.CompletionResult]::new($extendedValue, $descriptionValue, "ParameterValue", $codeValue)
+                        }
+                    }
+                }
+            }
+        }
     }
 }

@@ -3,7 +3,7 @@
 #
 # Generado por Code
 #
-# Generado el 16/11/2021
+# Generado el 01/04/2022
 #
 
 @{
@@ -27,10 +27,10 @@ Author = 'Code'
 CompanyName = 'NumericOverflow'
 
 # Instrucción de copyright de este módulo.
-Copyright = '(c) 2021 Code. Todos los derechos reservados.'
+Copyright = '(c) 2022 Code. Todos los derechos reservados.'
 
 # Descripción de la funcionalidad proporcionada por este módulo.
-Description = 'Line of busines tools'
+Description = 'Line Of Business tools'
 
 # Versión mínima del motor de Windows PowerShell requerida por este módulo.
 PowerShellVersion = '5.1'
@@ -70,12 +70,16 @@ PowerShellVersion = '5.1'
 
 # Funciones para exportar desde este módulo; para conseguir el mejor rendimiento, no uses caracteres comodines ni elimines la entrada; usa una matriz vacía si no hay funciones que exportar.
 FunctionsToExport = 'Get-ModelBaseCreationScript', 'Get-ModelNewScript', 
-               'Get-ModelReference', 'Get-DALLiteDBAddScript', 'Get-DALLiteDBBase', 
-               'Get-DALLiteDBCollectionScript', 'Get-DALLiteDBCreationScript', 
-               'Get-DALLiteDBFindScript', 'Get-DALLiteDBIndexScript', 
-               'Get-DALLiteDBNewScript', 'Get-DALLiteDBReferenceFindScript', 
-               'Get-DALLiteDBRemoveScript', 'Get-DALLiteDBTestScript', 
-               'Get-DALLiteDBUpdateScript', 'Get-DALLiteDBUpsertScript'
+               'Get-ModelPlural', 'Get-ModelReference', 
+               'Register-ModelAutocompleter', 'Get-DALLiteDBAddScript', 
+               'Get-DALLiteDBBase', 'Get-DALLiteDBCollectionScript', 
+               'Get-DALLiteDBCreationScript', 'Get-DALLiteDBGetScript', 
+               'Get-DALLiteDBIndexScript', 'Get-DALLiteDBNewScript', 
+               'Get-DALLiteDBReferenceGetScript', 'Get-DALLiteDBRemoveScript', 
+               'Get-DALLiteDBTestScript', 'Get-DALLiteDBUpdateScript', 
+               'Get-DALLiteDBUSetScript', 'Convert-PodeFunctionVerbToHttpMethod', 
+               'Convert-PodeFunctionVerbToHttpRules', 'Get-PodeADSessionScript', 
+               'Get-PodeCommandProxy'
 
 # Cmdlets para exportar desde este módulo; para conseguir el mejor rendimiento, no uses caracteres comodines ni elimines la entrada; usa una matriz vacía si no hay cmdlets que exportar.
 CmdletsToExport = '*'
@@ -99,7 +103,7 @@ AliasesToExport = '*'
 PrivateData = @{
 
     PSData = @{
-        Tags          = 'LOB','Line Of Business', 'LiteDB'
+        Tags          = 'LOB','Line Of Business', 'LiteDB', 'Pode'
         LicenseUri    = 'https://raw.githubusercontent.com/code-numericoverflow/LOBTools/master/LOBTools/LICENSE.txt'
         ProjectUri    = 'https://github.com/code-numericoverflow/LOBTools'
         IconUri       = 'https://raw.githubusercontent.com/code-numericoverflow/LOBTools/master/icon.png'

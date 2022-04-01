@@ -54,6 +54,20 @@ function Open-Connection {
     )
     $Script:DB = Open-LiteDBConnection -Database $Database -Mode Shared
 }   
+
+function Test-DatabaseConnection {
+    if ($Script:DB -ne $null) {
+        $true
+    } else {
+        $false
+    }
+}
+
+function Close-Connection {
+    param (
+    )
+    Close-LiteDBConnection -Connection $Script:DB
+}   
 '
 }
 
@@ -66,7 +80,7 @@ function Get-DALLiteDBCollectionScript {
         $collections = @()
     }
     process {
-        $collections += $classAst.Name | Get-Plural
+        $collections += $classAst.Name | Get-ModelPlural
     }
     end {
         $collections = $collections -join """, """
@@ -90,7 +104,7 @@ function Get-DALLiteDBIndexScript {
         $source          = $Reference.Source
         $target          = $Reference.Target
         $sourceId        = $source + "Id"
-        $collection      = $target | Get-Plural
+        $collection      = $target | Get-ModelPlural
         $indexes += "`tNew-LiteDBIndex -Connection `$Script:DB -Collection $collection -Field $sourceId"
     }
     end {
@@ -142,7 +156,7 @@ function Get-DALLiteDBAddScript {
     )
     process {
         $className          = $classAst.Name
-        $CollectionName     = $className | Get-Plural
+        $CollectionName     = $className | Get-ModelPlural
         $script  = "
 function Add-$className {
     param (
@@ -168,9 +182,9 @@ function Get-DALLiteDBGetScript {
     )
     process {
         $className          = $classAst.Name
-        $CollectionName     = $className | Get-Plural
+        $CollectionName     = $className | Get-ModelPlural
         $parameterName      = $className + "Id"
-        $parameterPlural    = $parameterName | Get-Plural
+        $parameterPlural    = $parameterName | Get-ModelPlural
         $script  = "
 function Get-$className {
     #[OutputType([$className])]
@@ -213,9 +227,9 @@ function Get-DALLiteDBTestScript {
     )
     process {
         $className          = $classAst.Name
-        $CollectionName     = $className | Get-Plural
+        $CollectionName     = $className | Get-ModelPlural
         $parameterName      = $className + "Id"
-        $parameterPlural    = $parameterName | Get-Plural
+        $parameterPlural    = $parameterName | Get-ModelPlural
         $script  = "
 function Test-$className {
     #[OutputType([Boolean])]
@@ -245,7 +259,7 @@ function Get-DALLiteDBUpdateScript {
     )
     process {
         $className          = $classAst.Name
-        $CollectionName     = $className  | Get-Plural
+        $CollectionName     = $className  | Get-ModelPlural
         $parameterName      = $className
         $script  = "
 function Update-$className {
@@ -268,7 +282,7 @@ function Get-DALLiteDBUSetScript {
     )
     process {
         $className          = $classAst.Name
-        $CollectionName     = $className  | Get-Plural
+        $CollectionName     = $className  | Get-ModelPlural
         $parameterName      = $className
         $script  = "
 function Set-$className {
@@ -291,9 +305,9 @@ function Get-DALLiteDBRemoveScript {
     )
     process {
         $className          = $classAst.Name
-        $CollectionName     = $className | Get-Plural
+        $CollectionName     = $className | Get-ModelPlural
         $parameterName      = $className + "Id"
-        $parameterPlural    = $parameterName | Get-Plural
+        $parameterPlural    = $parameterName | Get-ModelPlural
         $script  = "
 function Remove-$className {
     param (
@@ -315,7 +329,7 @@ function Get-DALLiteDBReferenceGetScript {
         $source          = $Reference.Source
         $target          = $Reference.Target
         $sourceId        = $source + "Id"
-        $collection      = $target | Get-Plural
+        $collection      = $target | Get-ModelPlural
         $script  = "
 function Get-$source$collection {
     #[OutputType([$target])]
