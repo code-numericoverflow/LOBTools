@@ -200,7 +200,7 @@ function Get-$className {
     )
     process {
         if (`$Text) {
-            Find-LiteDBDocument -Connection `$Script:DB -Collection $CollectionName -As PSObject | New-$className | Where-Object { `$_.GetFullText().Contains(`$Text) }
+            Find-LiteDBDocument -Connection `$Script:DB -Collection $CollectionName -Limit 100000 -As PSObject | New-$className | Where-Object { `$_.GetFullText().Contains(`$Text) }
         } else {
             if (`$$parameterName) {
                 `$result = Find-LiteDBDocument -Connection `$Script:DB -Collection $CollectionName -ID `$$parameterName -As PSObject | New-$className
@@ -211,7 +211,7 @@ function Get-$className {
                     `$result
                 }
             } else {
-                Find-LiteDBDocument -Connection `$Script:DB -Collection $CollectionName -As PSObject | New-$className
+                Find-LiteDBDocument -Connection `$Script:DB -Collection $CollectionName -Limit 100000 -As PSObject | New-$className
             }
         }
     }
