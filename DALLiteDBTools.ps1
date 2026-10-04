@@ -1,5 +1,17 @@
 using namespace System.Management.Automation.Language
 
+function Get-DALLiteDBModelNewScript {
+    param (
+        [Parameter(ValueFromPipeline=$true, Mandatory=$true)]
+        [String]   $ModelClassesPath
+    )
+    process {
+        $ast = [Parser]::ParseInput((Get-Content $ModelClassesPath), [ref]$null, [ref]$null)
+        $astClasses         = $ast.FindAll({ $args[0].IsClass }, $true) | Where-Object { $_.nAME -ne "EntityBase" }
+        $astClasses | Get-DALLiteDBNewScript
+    }
+}
+
 function Get-DALLiteDBCreationScript {
     param (
         [Parameter(ValueFromPipeline=$true, Mandatory=$true)]
@@ -121,13 +133,53 @@ $indexes
 
 function Get-DALLiteDBNewScript {
     param (
-        [TypeDefinitionAst]   $BaseTypeAst,
         [Parameter(ValueFromPipeline=$true, Mandatory=$true)]
         [TypeDefinitionAst]   $classAst
     )
+    begin {
+        $script = '
+$script:ObfuscatedFields = @()
+
+function Set-ObfuscatedFields {
+	param (
+		[Parameter(Mandatory)]
+		[AllowEmptyCollection()]
+		[String[]] $Fields
+	)
+	$script:ObfuscatedFields = $Fields
+}
+
+function Get-ObfuscatedFields {
+	, $script:ObfuscatedFields
+}
+
+function Protect-BoundParameters {
+	param (
+		[Parameter(Mandatory)]
+		[String] $TypeName,
+		[Parameter(Mandatory)]
+		[System.Collections.IDictionary] $Parameters
+	)
+	$result = @{}
+	foreach ($key in $Parameters.Keys) {
+		$value = $Parameters[$key]
+		if ($script:ObfuscatedFields -contains "$TypeName.$key" -and -not [String]::IsNullOrEmpty($value)) {
+			$value = ConvertTo-ObfuscatedValue -Value $value
+		}
+		$result[$key] = $value
+	}
+	$result
+}
+
+function ConvertTo-ObfuscatedValue {
+	param ([String] $Value)
+	"********"
+}
+
+'
+    }
     process {
         $className = $classAst.Name
-        $script  = ""
         $script += "function New-$className {`n`t#[OutputType([$className])]`n`tparam (`n"
         $parameters = @()
         $baseParameters =@(
@@ -143,7 +195,7 @@ function Get-DALLiteDBNewScript {
         $parameters += $typeParameters
         $script +=  $parameters -join ",`n"
         $script += "`n`t)`n`tprocess {`n"
-        $script += "`t`t[$className] `$PSBoundParameters`n"
+        $script += "`t`t[$className] (Protect-BoundParameters -TypeName '$className' -Parameters `$PSBoundParameters)`n"
         $script += "`t}`n"
         $script += "}`n"
         $script
@@ -201,7 +253,7 @@ function Get-$className {
     )
     process {
         if (`$Text) {
-            Find-LiteDBDocument -Connection `$Script:DB -Collection $CollectionName -Limit 100000 -As PSObject | New-$className | Where-Object { `$_.GetFullText().Contains(`$Text) }
+            Find-LiteDBDocument -Connection `$Script:DB -Collection $CollectionName -Limit 100000 -As PSObject -Where "" Id Like `'%`$Text%' or Name Like '%`$Text%' or Comment Like '%`$Text%' "" -Select '$' | New-$className
         } else {
             if (`$$parameterName) {
                 `$result = Find-LiteDBDocument -Connection `$Script:DB -Collection $CollectionName -ID `$$parameterName -As PSObject | New-$className
