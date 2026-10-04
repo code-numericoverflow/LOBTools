@@ -50,9 +50,10 @@ $Script:DB = $null
 
 function Open-Connection {
     param (
-        [String] $Database
+        [String] $Database,
+        [Switch] $ReadOnly
     )
-    $Script:DB = Open-LiteDBConnection -Database $Database -Mode Shared
+    $Script:DB = Open-LiteDBConnection -Database $Database -Mode Shared -ReadOnly:$ReadOnly
 }   
 
 function Test-DatabaseConnection {
