@@ -180,7 +180,7 @@ function ConvertTo-ObfuscatedValue {
     }
     process {
         $className = $classAst.Name
-        $script += "function New-$className {`n`t#[OutputType([$className])]`n`tparam (`n"
+        $script += "`nfunction New-$className {`n`t#[OutputType([$className])]`n`tparam (`n"
         $parameters = @()
         $baseParameters =@(
             "`t`t[Parameter(ValueFromPipelineByPropertyName=`$true)]`n`t`t[String]  `$Id"        ,
@@ -198,6 +198,8 @@ function ConvertTo-ObfuscatedValue {
         $script += "`t`t[$className] (Protect-BoundParameters -TypeName '$className' -Parameters `$PSBoundParameters)`n"
         $script += "`t}`n"
         $script += "}`n"
+    }
+    end {
         $script
     }
 }
