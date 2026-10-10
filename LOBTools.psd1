@@ -12,7 +12,7 @@
 RootModule = '.\LOBTools.psm1'
 
 # Número de versión de este módulo.
-ModuleVersion = '0.0.1'
+ModuleVersion = '0.0.2'
 
 # PSEditions compatibles
 # CompatiblePSEditions = @()
@@ -79,7 +79,7 @@ FunctionsToExport = 'Get-ModelBaseCreationScript', 'Get-ModelNewScript',
                'Get-DALLiteDBTestScript', 'Get-DALLiteDBUpdateScript', 
                'Get-DALLiteDBUSetScript', 'Convert-PodeFunctionVerbToHttpMethod', 
                'Convert-PodeFunctionVerbToHttpRules', 'Get-PodeADSessionScript', 
-               'Get-PodeCommandProxy'
+               'Get-PodeCommandProxy', 'Get-DALLiteDBModelNewScript'
 
 # Cmdlets para exportar desde este módulo; para conseguir el mejor rendimiento, no uses caracteres comodines ni elimines la entrada; usa una matriz vacía si no hay cmdlets que exportar.
 CmdletsToExport = '*'

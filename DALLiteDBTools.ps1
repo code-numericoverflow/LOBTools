@@ -164,16 +164,12 @@ function Protect-BoundParameters {
 	foreach ($key in $Parameters.Keys) {
 		$value = $Parameters[$key]
 		if ($script:ObfuscatedFields -contains "$TypeName.$key" -and -not [String]::IsNullOrEmpty($value)) {
-			$value = ConvertTo-ObfuscatedValue -Value $value
+            $id    = $Parameters["Id"]
+            $value = "<$TypeName[$id].$key>"
 		}
 		$result[$key] = $value
 	}
 	$result
-}
-
-function ConvertTo-ObfuscatedValue {
-	param ([String] $Value)
-	"********"
 }
 
 '
